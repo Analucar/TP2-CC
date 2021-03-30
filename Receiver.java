@@ -12,7 +12,7 @@ public class Receiver {
         try {
             DatagramSocket serverSocket = new DatagramSocket(port);
             byte[] receiveData = new byte[50];
-            String sendString = "polo";
+            String sendString = "confirm";
             byte[] sendData = sendString.getBytes("UTF-8");
 
             System.out.printf("Listening on udp:%s:%d%n",
@@ -26,11 +26,10 @@ public class Receiver {
                         receivePacket.getLength());
                 System.out.println("RECEIVED: " + sentence);
                 // now send acknowledgement packet back to sender
-                /*
+
                 DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,
                         receivePacket.getAddress(), receivePacket.getPort());
                 serverSocket.send(sendPacket);
-                 */
             }
         } catch (IOException e) {
             System.out.println(e);
