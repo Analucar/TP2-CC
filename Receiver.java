@@ -18,7 +18,6 @@ public class Receiver {
             String sendString = "confirm";
             byte[] sendData = sendString.getBytes("UTF-8");
             OutputStream fout = new FileOutputStream("/home/luisa/Desktop/CC/Banana/banana");
-            int n;
 
             System.out.printf("Listening on udp:%s:%d%n",
                     InetAddress.getLocalHost().getHostAddress(), port);
@@ -27,7 +26,7 @@ public class Receiver {
             while (true) {
                 serverSocket.receive(receivePacket);
                 String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                System.out.println("RECEIVED: " + sentence);
+                //System.out.println("RECEIVED: " + sentence);
 
                 // now send acknowledgement packet back to sender
 

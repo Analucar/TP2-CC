@@ -13,16 +13,9 @@ public class Transmitter {
         InputStream f = new FileInputStream("/home/luisa/Desktop/CC/banana");
         int n = f.read(sendData);
         f.close();
-        byte[] sendData2 = new byte[n];
-
-        System.out.println(n);
-
-        for(int i = 0; i<n;i++) {
-            sendData2[i] = sendData[i];
-        }
 
         InetAddress address = InetAddress.getLocalHost();
-        DatagramPacket packet = new DatagramPacket(sendData2, sendData2.length, address, 12345);
+        DatagramPacket packet = new DatagramPacket(sendData, sendData.length, address, 12345);
 
         DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
