@@ -1,16 +1,28 @@
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.*;
 
 public class Transmitter {
 
     public static void main(String[] args) throws UnknownHostException, SocketException, IOException  {
 
-        String teste = args[0];
-        byte[] receiveData = new byte[50];
+        byte[] sendData = new byte[32768];
+        byte[] receiveData = new byte[32768];
 
-        byte[] buffer = teste.getBytes();
+        InputStream f = new FileInputStream("/home/luisa/Desktop/CC/banana");
+        int n = f.read(sendData);
+        f.close();
+        byte[] sendData2 = new byte[n];
+
+        System.out.println(n);
+
+        for(int i = 0; i<n;i++) {
+            sendData2[i] = sendData[i];
+        }
+
         InetAddress address = InetAddress.getLocalHost();
-        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 12345);
+        DatagramPacket packet = new DatagramPacket(sendData2, sendData2.length, address, 12345);
 
         DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
