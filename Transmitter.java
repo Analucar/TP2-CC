@@ -5,27 +5,39 @@ import java.net.*;
 
 public class Transmitter {
 
-    public static void main(String[] args) throws UnknownHostException, SocketException, IOException  {
+    int port;
+    InetAddress address;
+    DatagramSocket datagramSocket;
 
-        byte[] sendData = new byte[32768];
+    public Transmitter(int port, InetAddress address) throws SocketException {
+        this.port = port;
+        this.address = address;
+        this.datagramSocket = new DatagramSocket();
+    }
+
+    public void transmitPackage(String request) throws IOException  {
+
+        byte[] sendRequest = request.getBytes();
+
+        Package pacote = new Package(1,123,0,sendRequest);
+
+        byte[] sendData = pacote.serializePackage();
+
+        DatagramPacket sendpacket = new DatagramPacket(sendData, sendData.length, this.address, this.port);
+
+        this.datagramSocket.send(sendpacket);
+
+    }
+
+
+    public byte[] receiverPackage() throws IOException {
+
         byte[] receiveData = new byte[32768];
-
-        InputStream f = new FileInputStream("/home/luisa/Desktop/CC/banana");
-        int n = f.read(sendData);
-        f.close();
-
-        InetAddress address = InetAddress.getLocalHost();
-        DatagramPacket packet = new DatagramPacket(sendData, sendData.length, address, 12345);
 
         DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
-        DatagramSocket datagramSocket = new DatagramSocket();
-        datagramSocket.send(packet);
-
-        System.out.println(InetAddress.getLocalHost().getHostAddress());
-
         datagramSocket.receive(receivePacket);
-        String sentence = new String(receivePacket.getData(), 0, receivePacket.getLength());
-        System.out.println("RECEIVED: " + sentence);
+
+        return receivePacket.getData();
     }
 }
