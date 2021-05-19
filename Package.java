@@ -2,13 +2,13 @@ import java.io.*;
 
 public class Package {
 
-    int flag;
+    boolean fragmentado;
     int idPackage;
     int offset;
     byte[] data;
 
-    public Package(int flag, int idPackage, int offset, byte[] data) {
-        this.flag = flag;
+    public Package(boolean flag, int idPackage, int offset, byte[] data) {
+        this.fragmentado = flag;
         this.idPackage = idPackage;
         this.offset = offset;
         this.data = data;
@@ -19,7 +19,7 @@ public class Package {
         ByteArrayInputStream in = new ByteArrayInputStream(data);
         ObjectInputStream is = new ObjectInputStream(in);
 
-        this.flag = is.readInt();
+        this.fragmentado = is.readBoolean();
         this.idPackage = is.readInt();
         this.offset = is.readInt();
 
@@ -35,7 +35,7 @@ public class Package {
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(bos);
-            out.writeInt(flag);
+            out.writeBoolean(fragmentado);
             out.writeInt(idPackage);
             out.writeInt(offset);
             out.writeInt(data.length);
@@ -49,6 +49,18 @@ public class Package {
 
     }
 
+    public boolean isFragmentado() {
+        return fragmentado;
+    }
+
+    public int getIdPackage() {
+        return idPackage;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
     public String getData(){
 
         String result = new String(data,0,data.length);
@@ -56,6 +68,7 @@ public class Package {
 
     }
 
-
-
+    public byte[] getDataBytes() {
+        return this.data;
+    }
 }

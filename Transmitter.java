@@ -15,29 +15,30 @@ public class Transmitter {
         this.datagramSocket = new DatagramSocket();
     }
 
+    /*Recebe uma requesta (para já apenas o nome do ficheiro) e comunica-a ao reciever*/
     public void transmitPackage(String request) throws IOException  {
 
         byte[] sendRequest = request.getBytes();
 
-        Package pacote = new Package(1,123,0,sendRequest);
-
+        Package pacote = new Package(false,123,0,sendRequest);
         byte[] sendData = pacote.serializePackage();
 
         DatagramPacket sendpacket = new DatagramPacket(sendData, sendData.length, this.address, this.port);
-
         this.datagramSocket.send(sendpacket);
 
     }
 
+    /*Recebe o pedido do utilizador, gerado pela função transmitPackage*/
+    public Package receiverPackage() throws IOException {
 
-    public byte[] receiverPackage() throws IOException {
-
-        byte[] receiveData = new byte[32768];
+        byte[] receiveData = new byte[64000];
 
         DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
         datagramSocket.receive(receivePacket);
 
-        return receivePacket.getData();
+        Package pacote = new Package(receivePacket.getData());
+
+        return pacote;
     }
 }
