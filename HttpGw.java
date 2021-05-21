@@ -1,73 +1,150 @@
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetAddress;
+import java.io.*;
+import java.net.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import static java.lang.System.currentTimeMillis;
+import java.util.Map;
 
 public class HttpGw {
 
     public static void main(String[] args) throws IOException {
 
+        Map<Integer, Package[]> pedidos = new HashMap<>();
+        Map<String,Integer> fastFileServers = new HashMap<>();
+
+        ServerSocket socket = new ServerSocket(12345);
+        Socket s = socket.accept();
+
+        DataInputStream in = new DataInputStream(new BufferedInputStream(s.getInputStream()));
+        DataOutputStream out = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
+
+        int size = in.readInt();
+        System.out.println(size);
+
+        byte[] ping = new byte[size];
+
+        in.readFully(ping);
+        String envio = new String(ping);
+        String[] info = envio.split(",");
+        fastFileServers.put(info[0], Integer.valueOf(info[1]));
+
+        String resposta = "ACK";
+
+        out.writeInt(resposta.length());
+        out.write(resposta.getBytes());
+        out.flush();
+
+        s.close();
+
         InetAddress address = InetAddress.getLocalHost();
+        Transmitter send = new Transmitter(fastFileServers.get("Server 1"), address);
+        ServerSocket serverSock = new ServerSocket(8080, 0, InetAddress.getByName("127.0.0.1"));
 
-        Transmitter send = new Transmitter(8888, address);
+        while (true) {
 
-        send.transmitPackage(args[0]);
+            Socket sock = serverSock.accept();
+            InputStream sis = sock.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(sis));
+            String request = br.readLine();
 
-        String[] token = args[0].split("/", -1);
+            System.out.println(request + "\n");
+            String[] requestParam = request.split(" ");
+            String path = requestParam[1];
+            String[] realPath = path.split("/");
+            System.out.println(realPath[1] + "\n");
 
-        // receber informação
+            send.transmitPackage(realPath[1], 1, 123, 0);
 
-        List<Byte> content = new ArrayList<>();
+            int totalLength = 60000;
 
-        Package output = send.receiverPackage();
-        /*
+            // receber informação
+            Package conteudo = null;
+            int tam, idPedido, falta;
+            tam = 0;
+            idPedido = 0;
+            int flag = 0;
+            int offset = 0;
 
-        long start = currentTimeMillis();
-        long current = currentTimeMillis();
-        Package output = null;
+            send.timeout(1000);
+            while (true) {
+                try {
+                    conteudo = send.receiverPackage();
+                    offset = conteudo.getOffset();
+                    falta = conteudo.getResto();
+                    idPedido = conteudo.getIdPackage();
+                    tam = falta + 1 + (offset / totalLength);
+                    break;
 
-        while(current < start + 2000 && output == null){
-            current = currentTimeMillis();
-            output = send.receiverPackage();
-        }
+                } catch (SocketTimeoutException e) {
+                    // resend
+                    send.transmitPackage(realPath[1], 1, 123, 0);
+                }
+            }
 
-        if(output == null){
-            send.transmitPackage(args[0]);
-        }
+            Package[] pacotes = new Package[tam];
 
-         */
+            for (int a = 0; a < tam; a++) {
+                pacotes[a] = null;
+            }
 
-        // offset maior que o comprimento
+            int indice = offset / totalLength;
 
-        int offset = output.getOffset();
-        byte[] data = output.getDataBytes();
-        boolean fragmentado = output.isFragmentado();
+            pacotes[indice] = conteudo;
 
-        if (!fragmentado) {
-
-            OutputStream fout = new FileOutputStream("/home/luisa/Desktop/CC/Banana/" + token[token.length - 1]);
-
-            fout.write(data);
-            fout.close();
-        } else {
+            boolean fragmentado = conteudo.isFragmentado();
 
             while (fragmentado) {
+                send.timeout(1000);
+                while (true) {
+                    try {
+                        conteudo = send.receiverPackage();
+                        offset = conteudo.getOffset();
+                        falta = conteudo.getResto();
+                        idPedido = conteudo.getIdPackage();
+                        pacotes[(offset / totalLength)] = conteudo;
+                        break;
+                    } catch (SocketTimeoutException e) {
+                        String res = "RENVIO";
+                        int num = offset + totalLength;
+                        send.transmitPackage(res, 1, idPedido, num);
+                    }
+                }
+                fragmentado = conteudo.isFragmentado();
+            }
+
+            for (int a = 0; a < pacotes.length; a++) {
+
+                if (pacotes[a] == null) {
+                    String res = "RENVIO";
+                    send.transmitPackage(res, 1, idPedido, a * totalLength);
+                    send.timeout(1000);
+                    while (true) {
+                        try {
+                            conteudo = send.receiverPackage();
+                            offset = conteudo.getOffset();
+                            falta = conteudo.getResto();
+                            idPedido = conteudo.getIdPackage();
+                            pacotes[(offset / totalLength)] = conteudo;
+                            break;
+                        } catch (SocketTimeoutException e) {
+                            send.transmitPackage(res, 1, idPedido, a * totalLength);
+                        }
+                    }
+                }
+            }
+
+            List<Byte> content = new ArrayList<>();
+            send.transmitPackage("ACK", 2, idPedido, 0);
+            pedidos.put(idPedido, pacotes);
+
+            for (int a = 0; a < pacotes.length; a++) {
+
+                byte[] data = pacotes[a].getDataBytes();
 
                 for (int i = 0; i < data.length; i++) {
                     content.add(data[i]);
                 }
-
-                output = send.receiverPackage();
-
-                offset = output.getOffset();
-                data = output.getDataBytes();
-                fragmentado = output.isFragmentado();
             }
-
 
             Byte[] bytes = content.toArray(new Byte[content.size()]);
             byte[] res = new byte[bytes.length];
@@ -75,21 +152,19 @@ public class HttpGw {
             int j = 0;
             // Unboxing Byte values. (Byte[] to byte[])
             for (Byte b : bytes) {
-                res[j++] = b.byteValue();
+                res[j++] = b;
             }
 
-            OutputStream fout = new FileOutputStream("/home/luisa/Desktop/CC/Banana/" + token[token.length - 1]);
+            DataOutputStream out2 = new DataOutputStream(sock.getOutputStream());
 
-            fout.write(res);
-            fout.close();
+            out2.write(res);
+            out2.flush();
 
+            br.close();
+            out2.close();
+
+            System.out.println(address);
         }
-
-        File file = new File("/home/luisa/Desktop/CC/Banana/" + token[token.length - 1]);
-        file.setExecutable(true);
-
-        System.out.println(address);
-
     }
-
 }
+

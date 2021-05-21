@@ -1,13 +1,10 @@
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.*;
 
 public class Transmitter {
-
-    int port;
-    InetAddress address;
-    DatagramSocket datagramSocket;
+    private int port;
+    private InetAddress address;
+    private DatagramSocket datagramSocket;
 
     public Transmitter(int port, InetAddress address) throws SocketException {
         this.port = port;
@@ -16,11 +13,16 @@ public class Transmitter {
     }
 
     /*Recebe uma requesta (para já apenas o nome do ficheiro) e comunica-a ao reciever*/
-    public void transmitPackage(String request) throws IOException  {
+    public void transmitPackage(String request, int i, int id, int offset) throws IOException  {
 
         byte[] sendRequest = request.getBytes();
+        Package pacote;
 
-        Package pacote = new Package(false,123,0,sendRequest);
+        if(i == 1) {
+            pacote = new Package(false, false, 0, id, offset, sendRequest);
+        }else{
+            pacote = new Package(false, true, 0, id,  offset, sendRequest);
+        }
         byte[] sendData = pacote.serializePackage();
 
         DatagramPacket sendpacket = new DatagramPacket(sendData, sendData.length, this.address, this.port);
@@ -40,5 +42,11 @@ public class Transmitter {
         Package pacote = new Package(receivePacket.getData());
 
         return pacote;
+    }
+
+    public void timeout(int time) throws SocketException {
+
+        datagramSocket.setSoTimeout(time);
+
     }
 }
