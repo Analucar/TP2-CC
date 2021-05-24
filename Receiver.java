@@ -18,13 +18,17 @@ public class Receiver {
     public void run() {
         try {
             byte[] receiveData = new byte[61440];
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             int offset = 0;
+            while(true) {
 
-            while (true) {
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
                 serverSocket.receive(receivePacket);
                 Package pacote = new Package(receivePacket.getData());
+
+                System.out.println("RECEBI PEDIDO");
+
+                //Thread.sleep(100000);
 
                 InputStream fout = new FileInputStream(pacote.getData());
                 File f = new File(pacote.getData()); // **ATENÇÃO** fazer uma pesquisa por onde esta o ficheiro??
@@ -95,7 +99,7 @@ public class Receiver {
 
                         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), receivePacket.getPort());
                         System.out.println("send packet: " + sendPacket.getData().length);
-                        if (indice%2==0) Thread.sleep(4000);
+                        if (indice % 2 == 0) Thread.sleep(4000);
                         serverSocket.send(sendPacket);
                     }
                 }
@@ -109,9 +113,33 @@ public class Receiver {
                     if (!ack) {
                         int id = ackPacote.getIdPackage();
                         int off = ackPacote.getOffset();
+                        //envio de um pacote especifico
                         enviarPacoteOffset(id, off, file, receivePacket.getAddress(), receivePacket.getPort());
                     }
                 }
+
+                String msgLivre = "LIVRE";
+                boolean acklivre = false;
+
+                Package boolLivre = new Package(false, false, 0,port,0,msgLivre.getBytes());
+
+                byte[] sendDataLivre = boolLivre.serializePackage();
+                DatagramPacket sendPacketLivre = new DatagramPacket(sendDataLivre, sendDataLivre.length, receivePacket.getAddress(), receivePacket.getPort());
+
+                while(!acklivre) {
+
+                    serverSocket.send(sendPacketLivre);
+
+                    DatagramPacket receivePacketSACK = new DatagramPacket(receiveData, receiveData.length);
+                    Package pacoteACK = new Package(receivePacketSACK.getData());
+                    acklivre = pacoteACK.isAck();
+
+                    if(!acklivre) {
+                        serverSocket.receive(receivePacketSACK);
+                    }
+
+                }
+
             }
         } catch (IOException | InterruptedException e) {
             System.out.println(e);
@@ -132,7 +160,7 @@ public class Receiver {
 
         int j = 0;
         for (int i = offset; j < tam; i++, j++) {
-            copyFile[j] = f[i]; // problema com cast -> offset dá um valor acima dos int o q dá erro na onversão.
+            copyFile[j] = f[i];
         }
 
         int falta = 0;
@@ -167,5 +195,20 @@ public class Receiver {
         Package pacote = new Package(receivePacket.getData());
 
         return pacote;
+    }
+
+    public void ping() throws IOException {
+
+        while(true) {
+
+            String response = "PING";
+
+            Package pacoteSend = new Package(false, false, 0, 9999, 0, response.getBytes());
+
+            byte[] sendData = pacoteSend.serializePackage();
+
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverSocket.getInetAddress(), port);
+            serverSocket.send(sendPacket);
+        }
     }
 }

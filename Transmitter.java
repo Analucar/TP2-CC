@@ -12,6 +12,10 @@ public class Transmitter {
         this.datagramSocket = new DatagramSocket();
     }
 
+    public int getPort() {
+        return port;
+    }
+
     /*Recebe uma requesta (para já apenas o nome do ficheiro) e comunica-a ao reciever*/
     public void transmitPackage(String request, int i, int id, int offset) throws IOException  {
 
@@ -26,6 +30,7 @@ public class Transmitter {
         byte[] sendData = pacote.serializePackage();
 
         DatagramPacket sendpacket = new DatagramPacket(sendData, sendData.length, this.address, this.port);
+
         this.datagramSocket.send(sendpacket);
 
     }
@@ -47,6 +52,33 @@ public class Transmitter {
     public void timeout(int time) throws SocketException {
 
         datagramSocket.setSoTimeout(time);
+
+    }
+
+    public boolean isConnected() {
+        return datagramSocket.isConnected();
+    }
+
+    public void creatConnection() {
+        datagramSocket.connect(address,port);
+    }
+
+    public InetAddress getInetAddress() {
+        return datagramSocket.getInetAddress();
+    }
+
+    public void close() {
+        datagramSocket.close();
+    }
+
+    public void disconected() {
+        datagramSocket.disconnect();
+    }
+
+    public void setTransmission(Integer value, InetAddress key) {
+
+        this.port = value;
+        this.address = key;
 
     }
 }
