@@ -1,3 +1,4 @@
+import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
@@ -10,18 +11,28 @@ public class HttpGw {
 
     final static int WORKERS_PER_CONNECTION = 1;
 
+    public void map_test(){
+    }
+
     public static void main(String[] args) throws IOException, InterruptedException {
 
         Map<Integer, Package[]> pedidos = new HashMap<>();
         Map<Integer, Map<InetAddress, Boolean>> fastFileServers = new HashMap<>();
         //Map<Integer,Boolean> fastFileServers = new HashMap<>();
 
+        //TODO: REMOVER
         DatagramSocket conection = new DatagramSocket(1234);
+        DatagramSocket connection_2 = new DatagramSocket(12345);
 
         InetAddress address = InetAddress.getLocalHost();
 
         System.out.println("HttpGw no endereco: " + address + "\n");
-
+        //CODE BEGIN
+        //CODE BEGIN
+        //CODE BEGIN
+        //CODE BEGIN
+        //CODE BEGIN
+        /*
         System.out.println("Procura de servidores");
 
         conection.setSoTimeout(5000);
@@ -42,7 +53,6 @@ public class HttpGw {
 
                 Map<InetAddress, Boolean> info = new HashMap<>();
                 info.put(packet.getAddress(), true);
-
                 // associa porta do servidor á disponibilidade deste
                 fastFileServers.put(Integer.valueOf(msg), info);
                 //fastFileServers.put(Integer.valueOf(msg),true);
@@ -54,7 +64,16 @@ public class HttpGw {
             }
         }
         System.out.println("Servidores Encontrados\n");
+        */
+        //CODE END
+        //CODE END
+        //CODE END
+        //CODE END
+        //CODE END
+        //CODE END
 
+        Thread serverUpdate = new Thread(new ServerUpdater(connection_2,fastFileServers));
+        serverUpdate.start();
         // conecção com os clientes com http
         ServerSocket serverSock = new ServerSocket(8080, 0, InetAddress.getByName("127.0.0.1"));
 
@@ -310,8 +329,11 @@ public class HttpGw {
 
                                 Map<InetAddress, Boolean> info = new HashMap<>();
                                 info.put(add, true);
+                                System.out.println("\nBEFORE ------------------------------------------------\n");
+                                fastFileServers.forEach((k,v) -> System.out.println("\n Porta:" + k + "\nAvailability:" + v));
                                 fastFileServers.put(porta, info);
-
+                                System.out.println("\nAFTER ------------------------------------------------\n");
+                                fastFileServers.forEach((k,v) -> System.out.println("\n Porta:" + k + "\nAvailability:" + v));
                                 send.transmitPackage("ACK LIVRE", 2, 00000, 0);
                                 break;
                             }

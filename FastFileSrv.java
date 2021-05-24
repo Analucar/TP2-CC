@@ -11,7 +11,7 @@ public class FastFileSrv {
         //conecão broadcast para envio da porta especifica
         DatagramSocket data = new DatagramSocket();
         data.setBroadcast(true);
-        data.connect(InetAddress.getByName("255.255.255.255"), 1234);
+        data.connect(InetAddress.getByName("255.255.255.255"), 12345);
 
         int max = 9000;
         int min = 8800;
