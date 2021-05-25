@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ServerUpdater implements Runnable {
-   // private ServerSocket serverSock;
+    // private ServerSocket serverSock;
     DatagramSocket conection;
     private Map<Integer, Map<InetAddress, Boolean>> fastFileServers;
 
@@ -15,7 +15,7 @@ public class ServerUpdater implements Runnable {
         this.fastFileServers = fastFileServers;
     }
 
-    public void run(){
+    public void run() {
         System.out.println("---------------------- SERVER _ UPDATER --------------------");
         try {
             run2();
@@ -26,11 +26,11 @@ public class ServerUpdater implements Runnable {
 
 
     private void run2() throws IOException {
-   //     conection = new DatagramSocket(12345);
+        //     conection = new DatagramSocket(12345);
         InetAddress address = InetAddress.getLocalHost();
-       // System.out.println("HttpGw no endereco: " + address + "\n");
+        // System.out.println("HttpGw no endereco: " + address + "\n");
         System.out.println("Procura de servidores");
-       // conection.setSoTimeout(5000);
+        // conection.setSoTimeout(5000);
         while (true) {
             byte[] receiveData = new byte[61440];
             DatagramPacket packet = new DatagramPacket(receiveData, receiveData.length);
@@ -43,11 +43,17 @@ public class ServerUpdater implements Runnable {
             Map<InetAddress, Boolean> info = new HashMap<>();
             info.put(packet.getAddress(), true);
             // associa porta do servidor á disponibilidade deste
-            System.out.println("\nBEFORE ------------------------------------------------\n");
-            fastFileServers.forEach((k,v) -> System.out.println("\n Porta:" + k + "\nAvailability:" + v));
-            fastFileServers.put(Integer.valueOf(msg), info);
-            System.out.println("\nAFTER ------------------------------------------------\n");
-            fastFileServers.forEach((k,v) -> System.out.println("\n Porta:" + k + "\nAvailability:" + v));
+
+            synchronized (fastFileServers) {
+
+                System.out.println("\nBEFORE ------------------------------------------------\n");
+                fastFileServers.forEach((k, v) -> System.out.println("\n Porta:" + k + "\nAvailability:" + v));
+
+                fastFileServers.put(Integer.valueOf(msg), info);
+
+                System.out.println("\nAFTER ------------------------------------------------\n");
+                fastFileServers.forEach((k, v) -> System.out.println("\n Porta:" + k + "\nAvailability:" + v));
+            }
             //fastFileServers.put(Integer.valueOf(msg),true);
             System.out.println("---------------------- SERVER _ UPDATER --------------------");
             System.out.println("Servidor encontrado na porta " + msg);

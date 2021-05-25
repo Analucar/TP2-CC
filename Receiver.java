@@ -57,6 +57,7 @@ public class Receiver {
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), receivePacket.getPort());
                     System.out.println("Data size: " + copyFile.length);
                     serverSocket.send(sendPacket);
+                    //hread.sleep(100000);
                 } else {
 
                     int fragmentos = (int) size / totalLength + 1;
@@ -99,7 +100,7 @@ public class Receiver {
 
                         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), receivePacket.getPort());
                         System.out.println("send packet: " + sendPacket.getData().length);
-                        if (indice % 2 == 0) Thread.sleep(4000);
+                        //if (indice % 2 == 0) Thread.sleep(4000);
                         serverSocket.send(sendPacket);
                     }
                 }
@@ -141,7 +142,7 @@ public class Receiver {
                 }
 
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             System.out.println(e);
         }
         // should close serverSocket in finally block

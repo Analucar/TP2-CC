@@ -42,9 +42,11 @@ public class Transmitter {
 
         DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 
-        datagramSocket.receive(receivePacket);
+        Package pacote = null;
+        boolean result = false;
 
-        Package pacote = new Package(receivePacket.getData());
+        datagramSocket.receive(receivePacket);
+        pacote = new Package(receivePacket.getData());
 
         return pacote;
     }
@@ -79,6 +81,11 @@ public class Transmitter {
 
         this.port = value;
         this.address = key;
+
+    }
+
+    public boolean isClose() {
+        return datagramSocket.isClosed();
 
     }
 }

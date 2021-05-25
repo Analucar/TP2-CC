@@ -9,16 +9,27 @@ public class FastFileSrv {
     public static void main(String[] args) throws InterruptedException, SocketException, UnknownHostException {
 
         //conecão broadcast para envio da porta especifica
-        DatagramSocket data = new DatagramSocket();
-        data.setBroadcast(true);
-        data.connect(InetAddress.getByName("255.255.255.255"), 12345);
+
+        InetAddress address = InetAddress.getByName(args[0]);
+        int port = Integer.parseInt(args[1]);
+        DatagramSocket data = new DatagramSocket(port);
+        //data.setBroadcast(true);
+        data.connect(address, port);
+
+
+
+        /*
 
         int max = 9000;
         int min = 8800;
         int range = max - min + 1;
 
         int port = (int) (Math.random() * range) + min;
-        String msg = String.valueOf(port);
+
+         */
+
+        String msg = String.valueOf("ACK SERVER");
+
         Package p = new Package(false, true, 0, 00000, 0, msg.getBytes());
 
         byte[] receiveData = p.serializePackage();
